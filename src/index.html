@@ -5,126 +5,157 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Luma</title>
 <style>
-@property --accent{syntax:'<color>';inherits:true;initial-value:#7c6cf0}
-:root{--bg:#16131d;--text:#f3f0f8;--mute:#9f98ae;--line:rgba(255,255,255,.08);transition:--accent 1.2s ease}
+@property --accent{syntax:'<color>';inherits:true;initial-value:#8b7cf6}
+:root{--bg:#09090c;--panel:#131217;--hov:rgba(255,255,255,.07);--text:#f4f2f8;--mute:#a19bb0;--line:rgba(255,255,255,.08);transition:--accent 1.2s ease}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
 body{font:14px/1.4 "Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);overflow:hidden;user-select:none}
-body::before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(70% 55% at 75% -5%,color-mix(in srgb,var(--accent) 50%,transparent),transparent 70%)}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+svg{display:block}.s{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.app{display:grid;grid-template-columns:210px 1fr;grid-template-rows:1fr 96px;height:100%}
-aside{padding:26px 14px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
-.logo{font-size:24px;font-weight:700;letter-spacing:-.03em;padding:0 12px 22px}
-.nav{text-align:left;padding:10px 12px;border-radius:10px;color:var(--mute);font-weight:600}
-.nav:hover{color:var(--text)}
-.nav.on{background:rgba(255,255,255,.08);color:var(--text)}
-main{overflow:auto;padding:28px 34px 20px}
-.bar{display:flex;gap:12px;margin-bottom:26px}
-#q{flex:1;max-width:520px;padding:13px 18px;border-radius:99px;border:1px solid var(--line);background:rgba(255,255,255,.07);color:var(--text);font:inherit;user-select:text}
-#q::placeholder{color:var(--mute)}
-#q:focus{outline:0;border-color:var(--accent)}
-h1{font-size:30px;letter-spacing:-.03em;margin-bottom:18px}
-#empty{color:var(--mute)}
-#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--cw,168px),1fr));gap:22px 18px}
-.card{cursor:pointer;min-width:0}
-.cv{position:relative;aspect-ratio:1;border-radius:14px;overflow:hidden;margin-bottom:10px;background:linear-gradient(135deg,hsl(var(--h) 45% 30%),hsl(calc(var(--h) + 50) 50% 18%));transition:transform .2s}
-.card:hover .cv{transform:translateY(-3px)}
+[hidden]{display:none!important}
+::-webkit-scrollbar{width:10px}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.14);border-radius:6px}
+.app{display:grid;grid-template-columns:290px 1fr;grid-template-rows:minmax(0,1fr) 88px;gap:8px;height:100%;padding:8px 8px 0}
+aside{display:flex;flex-direction:column;gap:8px;min-height:0}
+.panel{background:var(--panel);border-radius:12px}
+.nav-p{padding:18px 12px 10px}
+.logo{display:flex;align-items:center;gap:10px;font-size:22px;font-weight:700;letter-spacing:-.03em;padding:0 12px 14px}
+.nav{display:flex;align-items:center;gap:14px;width:100%;padding:10px 12px;border-radius:8px;color:var(--mute);font-weight:600;font-size:15px}
+.nav svg{width:22px;height:22px}.nav:hover,.nav.on{color:var(--text)}
+.lib-p{flex:1;min-height:0;display:flex;flex-direction:column;padding:16px 8px 8px}
+.lib-p h3{display:flex;justify-content:space-between;font-size:14px;color:var(--mute);padding:0 10px 10px}
+#mini{overflow:auto;flex:1}
+.mi{display:flex;gap:12px;align-items:center;padding:6px 8px;border-radius:8px;cursor:pointer}
+.mi:hover{background:var(--hov)}.mi .cv{width:44px;height:44px;border-radius:6px;flex:none}
+.cv{position:relative;overflow:hidden;background:linear-gradient(135deg,hsl(var(--h) 45% 30%),hsl(calc(var(--h) + 50) 50% 18%))}
 .cv img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.st{position:absolute;left:8px;bottom:8px;font-size:12px;font-weight:600;padding:2px 9px;border-radius:99px;background:rgba(0,0,0,.6)}
-.st:empty{display:none}
-.card.busy .cv{animation:pulse 1s infinite alternate}
-@keyframes pulse{to{opacity:.55}}
-.card b,.card i{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card i{color:var(--mute);font-style:normal;font-size:13px}
-.card.on b{color:var(--accent)}
-footer{grid-column:1/3;display:grid;grid-template-columns:1fr 2fr 1fr;align-items:center;gap:24px;padding:0 24px;border-top:1px solid var(--line);background:rgba(10,8,14,.55);backdrop-filter:blur(24px)}
-.np{display:flex;gap:14px;align-items:center;min-width:0}
-#np-img{width:62px;height:62px;border-radius:10px;object-fit:cover;background:rgba(255,255,255,.08);flex:none}
+.mt{min-width:0}.mt b,.mt i{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mt b{font-weight:500;font-size:15px}.mt i{font-style:normal;color:var(--mute);font-size:13px}
+.on .mt b{color:var(--accent)}
+main{position:relative;overflow:auto;border-radius:12px;background:var(--panel);min-height:0}
+main::before{content:"";position:absolute;inset:0 0 auto;height:340px;background:linear-gradient(color-mix(in srgb,var(--accent) 38%,transparent),transparent);pointer-events:none}
+body.no-glow main::before{display:none}
+.top{position:sticky;top:0;z-index:3;display:flex;flex-direction:column;gap:12px;padding:16px 24px 10px;backdrop-filter:blur(18px);background:rgba(19,18,23,.5)}
+.sb{display:flex;align-items:center;gap:10px;max-width:480px;height:46px;padding:0 16px;border-radius:99px;background:rgba(255,255,255,.1);border:2px solid transparent;color:var(--mute)}
+.sb:focus-within{border-color:#fff;color:var(--text)}.sb svg{width:20px;height:20px;flex:none}
+#q{flex:1;min-width:0;background:none;border:0;outline:0;color:var(--text);font:inherit;user-select:text}
+#q::placeholder{color:var(--mute)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{padding:6px 14px;border-radius:99px;background:rgba(255,255,255,.1);font-weight:600;font-size:13px}
+.chip:hover{background:rgba(255,255,255,.18)}.chip.on{background:#fff;color:#111}
+.body{position:relative;padding:8px 24px 28px}
+h1{font-size:30px;letter-spacing:-.03em;margin:8px 0 14px}
+#empty,.hint{color:var(--mute)}.hint{font-size:13px;margin-bottom:6px}
+.it{position:relative;cursor:pointer;min-width:0}
+#grid.list .it{display:grid;grid-template-columns:48px minmax(0,1fr) 96px 84px 46px;align-items:center;gap:16px;padding:7px 12px;border-radius:8px}
+#grid.list .it:hover{background:var(--hov)}#grid.list .cv{width:48px;height:48px;border-radius:6px}
+#grid.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(176px,1fr));gap:12px}
+#grid.tiles .it{padding:12px;border-radius:10px;background:rgba(255,255,255,.04)}#grid.tiles .it:hover{background:var(--hov)}
+#grid.tiles .cv{aspect-ratio:1;border-radius:8px;margin-bottom:10px}
+#grid.tiles .src,#grid.tiles .du{display:none}
+#grid.tiles .st{position:absolute;top:20px;left:20px;background:rgba(0,0,0,.65);padding:2px 9px;border-radius:99px;font-weight:600}
+.src{justify-self:start;padding:2px 9px;border:1px solid var(--line);border-radius:99px;font-size:11px;font-weight:600;color:var(--mute)}
+.src:empty,.st:empty{visibility:hidden}.st{font-size:12px;color:var(--mute)}
+body.no-badge .st{display:none}
+.du{text-align:right;color:var(--mute);font-variant-numeric:tabular-nums}
+.pl{position:absolute;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.5);opacity:0;transition:opacity .15s}
+.pl svg{width:22px;height:22px;fill:#fff}.it:hover .pl{opacity:1}
+.it.busy .cv{animation:pulse 1s infinite alternate}@keyframes pulse{to{opacity:.5}}
+body.no-anim *{transition:none!important;animation:none!important}
+/* нижняя панель */
+footer{grid-column:1/3;display:grid;grid-template-columns:minmax(200px,30%) 1fr minmax(200px,30%);align-items:center;gap:16px;padding:0 8px}
+.np{display:flex;gap:14px;align-items:center;min-width:0;cursor:pointer}
+#np-img{width:56px;height:56px;border-radius:6px;object-fit:cover;background:rgba(255,255,255,.08);flex:none}
 #np-img:not([src]){visibility:hidden}
 .np b,.np i{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.np i{color:var(--mute);font-style:normal;font-size:13px}
-.ctl{display:flex;flex-direction:column;align-items:center;gap:8px}
-.btns{display:flex;gap:18px;align-items:center}
-.btns svg{width:22px;height:22px;fill:currentColor}
-.btns button:hover{color:var(--accent)}
-#pp{width:46px;height:46px;border-radius:50%;background:var(--accent);color:#111;display:grid;place-items:center}
-#pp:hover{color:#111;filter:brightness(1.12)}
-.time{display:flex;gap:10px;width:100%;max-width:560px;font-size:12px;color:var(--mute);align-items:center;font-variant-numeric:tabular-nums}
-input[type=range]{flex:1;accent-color:var(--accent);cursor:pointer}
-.vol{display:flex;justify-content:flex-end;align-items:center;gap:10px;color:var(--mute)}
-.vol input{flex:none;width:110px}
-#toast{position:fixed;left:50%;bottom:112px;transform:translateX(-50%);background:#2a2433;padding:10px 18px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .25s;max-width:70vw}
+.np b{font-size:14px;font-weight:500}.np b:hover{text-decoration:underline}
+.np i{font-style:normal;font-size:12px;color:var(--mute)}
+.ctl{display:flex;flex-direction:column;align-items:center;gap:6px}
+.cb{display:flex;align-items:center;gap:16px}
+.ic{position:relative;width:32px;height:32px;display:grid;place-items:center;color:var(--mute)}
+.ic:hover{color:var(--text)}.ic.on{color:var(--accent)}.ic svg{width:18px;height:18px}
+.ic.fill svg{fill:currentColor;stroke:none}
+#rep.one::after{content:"1";position:absolute;right:4px;top:3px;font-size:9px;font-weight:700}
+#pp{width:34px;height:34px;border-radius:50%;background:#fff;color:#000;display:grid;place-items:center}
+#pp:hover{transform:scale(1.06)}#pp svg{width:18px;height:18px;fill:currentColor}
+.time{display:flex;align-items:center;gap:10px;width:100%;max-width:620px;font-size:12px;color:var(--mute);font-variant-numeric:tabular-nums}
+.time span{width:36px}#cur{text-align:right}
+.sl{-webkit-appearance:none;appearance:none;flex:1;height:4px;border-radius:4px;outline:0;cursor:pointer;background:linear-gradient(90deg,var(--f,#fff) var(--p,0%),rgba(255,255,255,.22) 0)}
+.sl:hover{--f:var(--accent)}
+.sl::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:#fff;opacity:0}.sl:hover::-webkit-slider-thumb{opacity:1}
+#wave{flex:1;min-width:0;height:28px;cursor:pointer}
+body:not(.wb) #wave{display:none}body.wb #seek{display:none}
+.vol{display:flex;justify-content:flex-end;align-items:center;gap:4px}.vol .sl{flex:none;width:100px}
+#toast{position:fixed;left:50%;bottom:104px;transform:translateX(-50%);background:#2a2433;padding:10px 18px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .25s;max-width:70vw}
 #toast.show{opacity:1}
-@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
-[hidden]{display:none!important}
-[data-size=s]{--cw:130px}[data-size=l]{--cw:210px}
-body.no-glow::before{display:none}
-body.no-blur footer{backdrop-filter:none;background:#0d0b12}
-body.no-anim *{transition:none!important;animation:none!important}
-body.no-badge .st{display:none}
-#settings{max-width:680px}
-#settings h1{margin-bottom:6px}
-#settings h2{font-size:14px;font-weight:600;margin:28px 0 4px;color:var(--mute)}
-.row{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:13px 0;border-bottom:1px solid var(--line);cursor:pointer}
+/* настройки */
+#settings{max-width:680px}#settings h1{margin-bottom:6px}
+#settings h2{font-size:14px;font-weight:600;margin:26px 0 6px;color:var(--mute)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer}
 .row input[type=checkbox]{appearance:none;flex:none;width:42px;height:24px;border-radius:99px;background:rgba(255,255,255,.18);position:relative;cursor:pointer;transition:background .2s}
 .row input[type=checkbox]::after{content:"";position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s}
-.row input[type=checkbox]:checked{background:var(--accent)}
-.row input[type=checkbox]:checked::after{transform:translateX(18px)}
-select{background:rgba(255,255,255,.1);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font:inherit}
-select option{background:#221d2b}
-.btn{padding:8px 16px;border-radius:99px;background:rgba(255,255,255,.1);font-weight:600}
-.btn:hover{background:rgba(255,255,255,.18)}
-#wave{flex:1;min-width:0;height:34px;cursor:pointer}
+.row input[type=checkbox]:checked{background:var(--accent)}.row input[type=checkbox]:checked::after{transform:translateX(18px)}
+select,.tx{background:rgba(255,255,255,.1);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font:inherit;user-select:text}
+.tx{width:260px}select option{background:#221d2b}
+.btn{padding:8px 16px;border-radius:99px;background:rgba(255,255,255,.1);font-weight:600}.btn:hover{background:rgba(255,255,255,.18)}
+/* Сейчас играет */
 #fs{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:40px;background:var(--bg);animation:fsin .35s ease}
 @keyframes fsin{from{opacity:0;transform:scale(1.03)}}
 #fs-bg{position:absolute;inset:-60px;z-index:-1;background:var(--fbg,none) center/cover;filter:blur(60px) brightness(.45) saturate(1.4)}
 #fs-img{width:min(46vh,440px);aspect-ratio:1;border-radius:24px;object-fit:cover;background:rgba(255,255,255,.08);transition:box-shadow .9s ease;box-shadow:0 30px 80px rgba(0,0,0,.45),0 -26px 90px -16px var(--gt,transparent),0 26px 90px -16px var(--gb,transparent),-26px 0 90px -16px var(--gl,transparent),26px 0 90px -16px var(--gr,transparent)}
 #fs-img:not([src]){visibility:hidden}
-.fs-t{text-align:center;max-width:80vw}
-.fs-t b{display:block;font-size:clamp(22px,3.4vh,34px);letter-spacing:-.02em}
+.fs-t{text-align:center;max-width:80vw}.fs-t b{display:block;font-size:clamp(22px,3.4vh,34px);letter-spacing:-.02em}
 .fs-t i{display:block;font-style:normal;color:rgba(255,255,255,.65);font-size:18px}
-.fs-w{width:min(760px,86vw)}
-#fwave{display:block;width:100%;height:72px;cursor:pointer}
+.fs-w{width:min(760px,86vw)}#fwave{display:block;width:100%;height:72px;cursor:pointer}
 .fs-time{display:flex;justify-content:space-between;color:rgba(255,255,255,.6);font-size:13px;margin-top:6px;font-variant-numeric:tabular-nums}
 #fs-x{position:absolute;top:20px;left:24px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.12);display:grid;place-items:center}
-#fs .btns{gap:32px}
-#fs .btns svg{width:32px;height:32px}
-#fs-pp{width:72px;height:72px;border-radius:50%;background:#fff;color:#111;display:grid;place-items:center}
-#fs-pp:hover{color:#111;filter:brightness(.92)}
+#fs .btns{display:flex;align-items:center;gap:32px}#fs .btns svg{width:32px;height:32px;fill:currentColor}
+#fs .btns button:hover{color:var(--accent)}
+#fs-pp{width:72px;height:72px;border-radius:50%;background:#fff;color:#111;display:grid;place-items:center}#fs-pp:hover{color:#111!important;filter:brightness(.92)}
 </style>
 </head>
 <body>
 <div class="app">
   <aside>
-    <div class="logo">Luma</div>
-    <button class="nav on" data-v="search">Поиск</button>
-    <button class="nav" data-v="lib">Библиотека</button>
-    <button class="nav" data-v="set">Настройки</button>
+    <div class="panel nav-p">
+      <div class="logo"><svg width="28" height="28" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="var(--accent)" stroke-width="2.5"/><path d="M10 8v8l6-4z" fill="#fff"/></svg>Luma</div>
+      <button class="nav on" data-v="search"><svg class="s" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>Поиск</button>
+      <button class="nav" data-v="lib"><svg class="s" viewBox="0 0 24 24"><path d="M5 3v18M10 3v18M15 5l5 15"/></svg>Библиотека</button>
+      <button class="nav" data-v="set"><svg class="s" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg>Настройки</button>
+    </div>
+    <div class="panel lib-p"><h3><span>Недавно скачанные</span><span id="libn"></span></h3><div id="mini"></div></div>
   </aside>
   <main>
-    <div class="bar"><input id="q" placeholder="Трек или исполнитель" autofocus></div>
-    <h1 id="title"></h1>
-    <p id="empty"></p>
-    <div id="grid"></div>
-    <div id="settings" hidden></div>
+    <div class="top" id="top">
+      <label class="sb"><svg class="s" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input id="q" placeholder="Что хотите послушать?" autofocus></label>
+      <div class="chips" id="chips"></div>
+    </div>
+    <div class="body">
+      <h1 id="title"></h1><p id="empty"></p><div id="grid" class="list"></div><div id="settings" hidden></div>
+    </div>
   </main>
   <footer>
-    <div class="np" id="npb" title="Открыть «Сейчас играет»" style="cursor:pointer"><img id="np-img" alt=""><div style="min-width:0"><b id="np-t">Ничего не играет</b><i id="np-a">Выберите трек</i></div></div>
+    <div class="np" id="npb" title="Открыть «Сейчас играет»"><img id="np-img" alt=""><div class="mt"><b id="np-t">Ничего не играет</b><i id="np-a">Выберите трек</i></div></div>
     <div class="ctl">
-      <div class="btns">
-        <button id="prev" aria-label="Назад"><svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg></button>
+      <div class="cb">
+        <button class="ic" id="shuf" aria-label="Перемешать"><svg class="s" viewBox="0 0 24 24"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg></button>
+        <button class="ic fill" id="prev" aria-label="Назад"><svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg></button>
         <button id="pp" aria-label="Играть"></button>
-        <button id="next" aria-label="Вперёд"><svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg></button>
+        <button class="ic fill" id="next" aria-label="Вперёд"><svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg></button>
+        <button class="ic" id="rep" aria-label="Повтор"><svg class="s" viewBox="0 0 24 24"><path d="M17 1l4 4-4 4M3 11V9a4 4 0 014-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 01-4 4H3"/></svg></button>
       </div>
-      <div class="time"><span id="cur">0:00</span><canvas id="wave"></canvas><span id="dur">0:00</span></div>
+      <div class="time"><span id="cur">0:00</span><input id="seek" class="sl" type="range" min="0" max="1000" value="0"><canvas id="wave"></canvas><span id="dur">0:00</span></div>
     </div>
-    <div class="vol"><span>Громкость</span><input id="vol" type="range" min="0" max="100" value="80"></div>
+    <div class="vol">
+      <button class="ic" id="fsb" aria-label="Сейчас играет"><svg class="s" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+      <button class="ic" id="mute" aria-label="Громкость"><svg class="s" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4zM15.5 8.5a5 5 0 010 7M19 5a9 9 0 010 14"/></svg></button>
+      <input id="vol" class="sl" type="range" min="0" max="100" value="80">
+    </div>
   </footer>
 </div>
 <section id="fs" hidden>
   <div id="fs-bg"></div>
-  <button id="fs-x" aria-label="Закрыть"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+  <button id="fs-x" aria-label="Закрыть"><svg class="s" width="22" height="22" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
   <img id="fs-img" alt="">
   <div class="fs-t"><b id="fs-t"></b><i id="fs-a"></i></div>
   <div class="fs-w"><canvas id="fwave"></canvas><div class="fs-time"><span id="fs-c">0:00</span><span id="fs-d">0:00</span></div></div>
@@ -137,35 +168,51 @@ select option{background:#221d2b}
 <div id="toast"></div>
 <script>
 const {invoke,convertFileSrc}=window.__TAURI__.core;
+const {emit,listen}=window.__TAURI__.event;
+const win=window.__TAURI__.window.getCurrentWindow();
 const $=s=>document.querySelector(s);
-const audio=new Audio();audio.volume=.8;
-const PLAY='<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
-const PAUSE='<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>';
-let view='search',results=[],lib=[],queue=[],qi=-1,now=null,busy=new Set(),searching=false;
+const audio=new Audio();
+const PLAY='<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>',PAUSE='<svg viewBox="0 0 24 24"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>';
+const SRC={ytm:'YT Music',yt:'YouTube',sc:'SoundCloud',sp:'Spotify'};
+const CHIPS=[['all','Все'],['ytm','YouTube Music'],['yt','YouTube'],['sc','SoundCloud'],['sp','Spotify']];
+const DEF={dyn:true,glow:true,anim:true,badges:true,layout:'list',waveBar:false,keys:true,count:20,
+  srcytm:true,srcsc:true,srcyt:false,srcsp:true,spId:'',spSecret:'',fsReal:false,fsGlow:true,fsGlowPower:2,
+  ov:false,ovOnlyPlay:false,ovLevel:'desk',ovGrid:true,ovAvoid:true,ovCover:true,ovTime:true,ovVol:true,ovMin:true,ovScale:100,ovOpacity:100,ovX:null,ovY:null};
+let S={...DEF,...JSON.parse(localStorage.getItem('luma')||localStorage.getItem('volna')||'{}')};
+const save=()=>localStorage.setItem('luma',JSON.stringify(S));
+let view='search',src='all',results=[],lib=[],queue=[],qi=-1,now=null,busy=new Set(),searching=false,shuf=false,rep=0,seeking=false,lastV=.8;
 const fmt=s=>{s=Math.max(0,s|0);return(s/60|0)+':'+String(s%60).padStart(2,'0')};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const cover=t=>t.local_cover?convertFileSrc(t.local_cover):(t.cover||'');
 const hue=id=>[...String(id)].reduce((a,c)=>a+c.charCodeAt(0),0)*37%360;
 const isLocal=t=>lib.some(l=>l.id===t.id);
 const list=()=>view==='search'?results:lib;
+const img=t=>cover(t)?`<img src="${esc(cover(t))}" loading="lazy" onerror="this.remove()">`:'';
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),3800)}
 
-function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),3500)}
-
+/* ---------- отрисовка ---------- */
+function row(t,i){
+  const b=busy.has(t.id);
+  return `<div class="it${b?' busy':''}${now&&now.id===t.id?' on':''}" data-i="${i}"><div class="cv" style="--h:${hue(t.id)}">${img(t)}<span class="pl">${PLAY}</span></div><div class="mt"><b>${esc(t.title)}</b><i>${esc(t.artist)}</i></div><span class="src">${SRC[t.source]||''}</span><span class="st">${isLocal(t)?'Скачан':b?'Скачиваю…':''}</span><span class="du">${t.duration?fmt(t.duration):''}</span></div>`;
+}
+function renderMini(){
+  $('#libn').textContent=lib.length||'';
+  $('#mini').innerHTML=lib.length?lib.map((t,i)=>`<div class="mi${now&&now.id===t.id?' on':''}" data-i="${i}"><div class="cv" style="--h:${hue(t.id)}">${img(t)}</div><div class="mt"><b>${esc(t.title)}</b><i>${esc(t.artist)}</i></div></div>`).join(''):'<p class="hint" style="padding:6px 10px">Здесь появятся скачанные треки.</p>';
+}
 function render(){
   const st=view==='set';
-  ['#settings','#grid','#title','#empty','.bar'].forEach(s=>$(s).hidden=s==='#settings'?!st:st);
+  $('#settings').hidden=!st;$('#grid').hidden=st;$('#title').hidden=st;$('#empty').hidden=st;$('#top').hidden=view!=='search';
+  $('#chips').innerHTML=CHIPS.map(([k,n])=>`<button class="chip${k===src?' on':''}" data-s="${k}">${n}</button>`).join('');
+  renderMini();
   if(st){renderSet();return}
   const l=list();
-  $('#title').textContent=view==='lib'?'Библиотека':searching?'Ищу…':l.length?'Результаты':'Музыка из SoundCloud';
-  $('#empty').textContent=l.length||searching?'':view==='lib'?'Скачанные треки появятся здесь.':'Введите запрос и нажмите Enter.';
-  $('#grid').innerHTML=l.map((t,i)=>{
-    const c=cover(t),st=isLocal(t)?'Скачан':busy.has(t.id)?'Скачиваю…':'';
-    return `<div class="card${busy.has(t.id)?' busy':''}${now&&now.id===t.id?' on':''}" data-i="${i}"><div class="cv" style="--h:${hue(t.id)}">${c?`<img src="${esc(c)}" loading="lazy" onerror="this.remove()">`:''}<span class="st">${st}</span></div><b>${esc(t.title)}</b><i>${esc(t.artist)}</i></div>`;
-  }).join('');
+  $('#title').textContent=view==='lib'?'Библиотека':searching?'Ищу…':l.length?'Результаты':'Найдите музыку';
+  $('#empty').textContent=l.length||searching?'':view==='lib'?'Скачанные треки появятся здесь.':'Введите запрос и нажмите Enter. Источник выбирается под строкой поиска.';
+  $('#grid').className=S.layout==='tiles'?'tiles':'list';
+  $('#grid').innerHTML=l.map(row).join('');
 }
-
-function accent(src){
-  if(!src||!S.dyn)return;
+function accent(s){
+  if(!s||!S.dyn)return;
   const i=new Image();i.crossOrigin='anonymous';
   i.onload=()=>{try{
     const c=document.createElement('canvas');c.width=c.height=10;
@@ -175,9 +222,10 @@ function accent(src){
     if(!n)return;r/=n;g/=n;b/=n;const k=210/Math.max(r,g,b);
     document.documentElement.style.setProperty('--accent',`rgb(${Math.min(255,r*k)|0},${Math.min(255,g*k)|0},${Math.min(255,b*k)|0})`);
   }catch{}};
-  i.src=src;
+  i.src=s;
 }
 
+/* ---------- воспроизведение ---------- */
 async function play(t,l){
   queue=l;qi=l.findIndex(x=>x.id===t.id);
   let tr=lib.find(x=>x.id===t.id);
@@ -190,89 +238,88 @@ async function play(t,l){
   }
   now=tr;audio.src=convertFileSrc(tr.file);audio.play();
   $('#np-t').textContent=tr.title;$('#np-a').textContent=tr.artist;
-  const c=cover(tr);if(c)$('#np-img').src=c;
+  const c=cover(tr);c?$('#np-img').src=c:$('#np-img').removeAttribute('src');
   accent(c);loadWave(tr);fsUpdate();render();
 }
-const step=d=>{const t=queue[qi+d];if(t)play(t,queue)};
-
+function step(d){
+  if(!queue.length)return;
+  let i;
+  if(d>0){i=shuf?Math.floor(Math.random()*queue.length):qi+1;if(i>=queue.length){if(rep===1)i=0;else return}}
+  else{if(audio.currentTime>3){audio.currentTime=0;return}i=qi-1;if(i<0)return}
+  play(queue[i],queue);
+}
 async function doSearch(q){
+  if(src==='sp'&&!S.spId)return toast('Добавьте ключи Spotify в настройках');
   searching=true;results=[];render();
-  try{results=await invoke('search',{query:q,count:S.count});if(!results.length)toast('Ничего не найдено')}
+  const enabled=['ytm','sc','yt','sp'].filter(k=>S['src'+k]);
+  try{results=await invoke('search',{query:q,count:S.count,source:src,spId:S.spId,spSecret:S.spSecret,enabled});if(!results.length)toast('Ничего не найдено')}
   catch(e){toast(String(e))}
   searching=false;render();
 }
-
 $('#q').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.value.trim()){view='search';setNav();doSearch(e.target.value.trim())}});
-$('#grid').onclick=e=>{const c=e.target.closest('.card');if(c)play(list()[c.dataset.i],list())};
+$('#chips').onclick=e=>{const c=e.target.closest('.chip');if(!c)return;src=c.dataset.s;render();const q=$('#q').value.trim();if(q)doSearch(q)};
+$('#grid').onclick=e=>{const c=e.target.closest('.it');if(c)play(list()[c.dataset.i],list())};
+$('#mini').onclick=e=>{const c=e.target.closest('.mi');if(c)play(lib[c.dataset.i],lib)};
 function setNav(){document.querySelectorAll('.nav').forEach(n=>n.classList.toggle('on',n.dataset.v===view));render()}
 document.querySelectorAll('.nav').forEach(n=>n.onclick=()=>{view=n.dataset.v;setNav()});
 
+/* ---------- нижняя панель ---------- */
+const setP=(el,p)=>el.style.setProperty('--p',p+'%');
 $('#pp').innerHTML=PLAY;
 $('#pp').onclick=()=>{if(audio.src)audio.paused?audio.play():audio.pause()};
 $('#prev').onclick=()=>step(-1);$('#next').onclick=()=>step(1);
+$('#shuf').onclick=e=>{shuf=!shuf;e.currentTarget.classList.toggle('on',shuf)};
+$('#rep').onclick=e=>{rep=(rep+1)%3;e.currentTarget.classList.toggle('on',rep>0);e.currentTarget.classList.toggle('one',rep===2)};
 audio.onplay=()=>$('#pp').innerHTML=PAUSE;
 audio.onpause=()=>$('#pp').innerHTML=PLAY;
-audio.onended=()=>step(1);
+audio.onended=()=>{if(rep===2){audio.currentTime=0;audio.play()}else step(1)};
 audio.ontimeupdate=()=>{
-  drawWave();$('#fs-c').textContent=fmt(audio.currentTime);$('#fs-d').textContent=fmt(audio.duration||0);
-  $('#cur').textContent=fmt(audio.currentTime);$('#dur').textContent=fmt(audio.duration||0);
+  const d=audio.duration||0,p=d?audio.currentTime/d*100:0;
+  if(!seeking){$('#seek').value=p*10;setP($('#seek'),p)}
+  $('#cur').textContent=fmt(audio.currentTime);$('#dur').textContent=fmt(d);
+  $('#fs-c').textContent=fmt(audio.currentTime);$('#fs-d').textContent=fmt(d);
+  drawWave();
 };
-let seeking=false;
+$('#seek').oninput=e=>{seeking=true;setP(e.target,e.target.value/10);if(audio.duration)audio.currentTime=e.target.value/1000*audio.duration};
+$('#seek').onchange=()=>seeking=false;
+audio.addEventListener('volumechange',()=>{const v=audio.volume*100;$('#vol').value=v;setP($('#vol'),v)});
 $('#vol').oninput=e=>audio.volume=e.target.value/100;
-document.addEventListener('keydown',e=>{if(S.keys&&e.code==='Space'&&e.target.tagName!=='INPUT'){e.preventDefault();$('#pp').click()}});
-
-invoke('library').then(l=>{lib=l;render()}).catch(()=>render());
+$('#mute').onclick=()=>{if(audio.volume>0){lastV=audio.volume;audio.volume=0}else audio.volume=lastV||.8};
+audio.volume=.8;
+document.addEventListener('keydown',e=>{if(S.keys&&e.code==='Space'&&!['INPUT','SELECT','BUTTON'].includes(e.target.tagName)){e.preventDefault();$('#pp').click()}});
 
 /* ---------- настройки ---------- */
-const {emit,listen}=window.__TAURI__.event;
-const win=window.__TAURI__.window.getCurrentWindow();
-const DEF={dyn:true,glow:true,blur:true,anim:true,badges:true,size:'m',keys:true,count:20,
-  ov:false,ovOnlyPlay:false,ovLevel:'desk',ovGrid:true,ovAvoid:true,fsReal:false,fsGlow:true,fsGlowPower:2,ovCover:true,ovTime:true,ovVol:true,ovMin:true,ovScale:100,ovOpacity:100,ovX:null,ovY:null};
-let S={...DEF,...JSON.parse(localStorage.getItem('luma')||localStorage.getItem('volna')||'{}')};
-const save=()=>localStorage.setItem('luma',JSON.stringify(S));
 const GROUPS=[
- ['Оформление',[
-  ['dyn','Цвета из обложки трека'],['glow','Световое пятно на фоне'],['blur','Размытие нижней панели'],
-  ['anim','Анимации'],['badges','Метка «Скачан» на карточках'],
-  ['size','Размер карточек',[['s','Мелкие'],['m','Средние'],['l','Крупные']]]]],
- ['Приложение',[
-  ['keys','Пробел ставит на паузу'],['fsReal','Полный экран окна в режиме «Сейчас играет»'],['fsGlow','Свечение от обложки в «Сейчас играет»'],['fsGlowPower','Сила свечения',[[1,'Слабое'],[2,'Среднее'],[3,'Сильное']]],['count','Результатов в поиске',[[10,'10'],[20,'20'],[40,'40']]]]],
- ['Виджет на рабочем столе',[
-  ['ov','Показывать виджет на рабочем столе'],['ovOnlyPlay','Только пока играет музыка'],['ovLevel','Где показывать виджет',[['desk','Только над рабочим столом'],['top','Поверх всех окон']]],['ovGrid','Сетка и привязка при выборе места'],['ovAvoid','Не ставить виджет на ярлыки'],
-  ['ovCover','Обложка'],['ovTime','Прогресс и время'],['ovVol','Громкость'],
-  ['ovMin','Сворачивать главное окно при выборе места'],
-  ['ovScale','Размер виджета',[[80,'Маленький'],[100,'Обычный'],[125,'Большой']]],
-  ['ovOpacity','Прозрачность виджета',[[100,'Нет'],[85,'Лёгкая'],[70,'Сильная']]]]]];
+ ['Оформление',[['layout','Вид результатов',[['list','Список'],['tiles','Плитки']]],['dyn','Цвета из обложки трека'],['glow','Цветная подсветка шапки'],['anim','Анимации'],['badges','Статус «Скачан»'],['waveBar','Волна вместо полосы прогресса внизу']]],
+ ['Поиск',[['srcytm','Искать в YouTube Music'],['srcsc','Искать в SoundCloud'],['srcyt','Искать в YouTube'],['srcsp','Искать в Spotify'],['count','Результатов с источника',[[10,'10'],[20,'20'],[40,'40']]]],'Эти источники используются во вкладке «Все». Один источник можно выбрать под строкой поиска.'],
+ ['Spotify',[['spId','Client ID',null,'text'],['spSecret','Client Secret',null,'password']],'Аудио Spotify защищено, поэтому Luma берёт каталог Spotify (не больше 10 результатов), а сам трек находит и скачивает на YouTube Music. Нужны ключи приложения с developer.spotify.com/dashboard.'],
+ ['Приложение',[['keys','Пробел ставит на паузу'],['fsReal','Полный экран окна в «Сейчас играет»'],['fsGlow','Свечение от обложки в «Сейчас играет»'],['fsGlowPower','Сила свечения',[[1,'Слабое'],[2,'Среднее'],[3,'Сильное']]]]],
+ ['Виджет на рабочем столе',[['ov','Показывать виджет на рабочем столе'],['ovOnlyPlay','Только пока играет музыка'],['ovLevel','Где показывать виджет',[['desk','Только над рабочим столом'],['top','Поверх всех окон']]],['ovGrid','Сетка и привязка при выборе места'],['ovAvoid','Не ставить виджет на ярлыки'],['ovCover','Обложка'],['ovTime','Прогресс и время'],['ovVol','Громкость'],['ovMin','Сворачивать главное окно при выборе места'],['ovScale','Размер виджета',[[80,'Маленький'],[100,'Обычный'],[125,'Большой']]],['ovOpacity','Прозрачность виджета',[[100,'Нет'],[85,'Лёгкая'],[70,'Сильная']]]]]];
 function renderSet(){
-  $('#settings').innerHTML='<h1>Настройки</h1>'+GROUPS.map(([g,it])=>`<h2>${g}</h2>`+it.map(([k,l,o])=>
-    `<label class="row"><span>${l}</span>${o?`<select data-k="${k}">${o.map(([v,n])=>`<option value="${v}"${S[k]==v?' selected':''}>${n}</option>`).join('')}</select>`:`<input type="checkbox" data-k="${k}"${S[k]?' checked':''}>`}</label>`).join('')).join('')
+  $('#settings').innerHTML='<h1>Настройки</h1>'+GROUPS.map(([g,it,note])=>`<h2>${g}</h2>${note?`<p class="hint">${note}</p>`:''}`+it.map(([k,l,o,ty])=>
+    `<label class="row"><span>${l}</span>${o?`<select data-k="${k}">${o.map(([v,n])=>`<option value="${v}"${S[k]==v?' selected':''}>${n}</option>`).join('')}</select>`:ty?`<input class="tx" type="${ty}" data-k="${k}" value="${esc(S[k])}" placeholder="не задано">`:`<input type="checkbox" data-k="${k}"${S[k]?' checked':''}>`}</label>`).join('')).join('')
     +'<div class="row" style="cursor:default"><span>Положение виджета</span><span><button class="btn" id="place">Выбрать место</button> <button class="btn" id="reset">Сбросить</button></span></div>';
 }
 $('#settings').onchange=e=>{const k=e.target.dataset.k;if(!k)return;
-  S[k]=e.target.type==='checkbox'?e.target.checked:typeof DEF[k]==='number'?+e.target.value:e.target.value;save();apply()};
+  S[k]=e.target.type==='checkbox'?e.target.checked:typeof DEF[k]==='number'?+e.target.value:e.target.value.trim();save();apply()};
 $('#settings').onclick=e=>{
   if(e.target.id==='place')placeOverlay();
   if(e.target.id==='reset'){S.ovX=S.ovY=null;save();pushOverlay();toast('Виджет вернётся вниз по центру')}};
 function apply(){
   const b=document.body.classList;
-  b.toggle('no-glow',!S.glow);b.toggle('no-blur',!S.blur);b.toggle('no-anim',!S.anim);b.toggle('no-badge',!S.badges);
-  document.documentElement.dataset.size=S.size;
+  b.toggle('no-glow',!S.glow);b.toggle('no-anim',!S.anim);b.toggle('no-badge',!S.badges);b.toggle('wb',!!S.waveBar);
   if(!S.dyn)document.documentElement.style.removeProperty('--accent');
-  pushOverlay();
+  render();pushOverlay();drawWave();
 }
 
-/* ---------- связь с виджетом ---------- */
+/* ---------- виджет ---------- */
 function pushOverlay(){
-  emit('ov',{s:S,title:now?now.title:'Ничего не играет',artist:now?now.artist:'',cover:now?cover(now):'',
+  emit('ov',{s:Object.fromEntries(Object.entries(S).filter(([k])=>k.startsWith('ov'))),title:now?now.title:'Ничего не играет',artist:now?now.artist:'',cover:now?cover(now):'',
     paused:audio.paused,t:audio.currentTime||0,d:audio.duration||0,vol:audio.volume,
-    acc:document.documentElement.style.getPropertyValue('--accent')||'#7c6cf0'});
+    acc:document.documentElement.style.getPropertyValue('--accent')||'#8b7cf6'});
 }
-async function placeOverlay(){
-  if(S.ovMin)await win.minimize();
-  pushOverlay();emit('ov-place');
-}
+async function placeOverlay(){if(S.ovMin)await win.minimize();pushOverlay();emit('ov-place')}
 ['timeupdate','play','pause','volumechange'].forEach(v=>audio.addEventListener(v,pushOverlay));
-audio.addEventListener('volumechange',()=>$('#vol').value=audio.volume*100);
 listen('ov-ready',pushOverlay);
 listen('ovcmd',async e=>{const {c,v,x,y}=e.payload;
   if(c==='pp')$('#pp').click();
@@ -283,9 +330,8 @@ listen('ovcmd',async e=>{const {c,v,x,y}=e.payload;
   else if(c==='open'){await win.unminimize();await win.show();await win.setFocus()}
   else if(c==='placed'){S.ovX=x;S.ovY=y;save();await win.unminimize();await win.setFocus();toast('Положение сохранено')}
 });
-apply();
 
-/* ---------- волна трека ---------- */
+/* ---------- волна ---------- */
 const peaks=new Map();let wp=null;
 async function loadWave(tr){
   wp=null;drawWave();
@@ -325,9 +371,9 @@ addEventListener('resize',drawWave);
 });
 
 /* ---------- «Сейчас играет» ---------- */
-function glow(src){
+function glow(s){
   const el=$('#fs-img'),set=(t,b,l,r)=>[['t',t],['b',b],['l',l],['r',r]].forEach(([k,v])=>el.style.setProperty('--g'+k,v));
-  if(!S.fsGlow||!src)return set('transparent','transparent','transparent','transparent');
+  if(!S.fsGlow||!s)return set('transparent','transparent','transparent','transparent');
   const a=[.3,.5,.75][S.fsGlowPower-1]||.5,i=new Image();i.crossOrigin='anonymous';
   i.onload=()=>{
     const N=24,c=document.createElement('canvas');c.width=c.height=N;
@@ -340,7 +386,7 @@ function glow(src){
       set(avg(0,0,N,6),avg(0,N-6,N,6),avg(0,0,6,N),avg(N-6,0,6,N));
     }catch{const ac=`color-mix(in srgb,var(--accent) ${a*100}%,transparent)`;set(ac,ac,ac,ac)}
   };
-  i.src=src;
+  i.src=s;
 }
 function fsUpdate(){
   if(!now)return;
@@ -351,13 +397,16 @@ function fsUpdate(){
 }
 function openFs(){if(!now)return toast('Сначала включите трек');fsUpdate();$('#fs').hidden=false;drawWave();if(S.fsReal)win.setFullscreen(true)}
 function closeFs(){if($('#fs').hidden)return;$('#fs').hidden=true;if(S.fsReal)win.setFullscreen(false)}
-$('#npb').onclick=openFs;$('#fs-x').onclick=closeFs;
+$('#npb').onclick=openFs;$('#fsb').onclick=openFs;$('#fs-x').onclick=closeFs;
 $('#fs-pp').innerHTML=PLAY;
 $('#fs-pp').onclick=()=>$('#pp').click();
 $('#fs-prev').onclick=()=>step(-1);$('#fs-next').onclick=()=>step(1);
 audio.addEventListener('play',()=>$('#fs-pp').innerHTML=PAUSE);
 audio.addEventListener('pause',()=>$('#fs-pp').innerHTML=PLAY);
 addEventListener('keydown',e=>{if(e.key==='Escape')closeFs()});
+
+invoke('library').then(l=>{lib=l;render()}).catch(()=>render());
+apply();
 </script>
 </body>
 </html>

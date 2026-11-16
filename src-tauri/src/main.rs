@@ -17,6 +17,8 @@ struct Track {
     file: Option<String>,
     #[serde(default)]
     local_cover: Option<String>,
+    #[serde(default)]
+    source: String,
 }
 
 // yt-dlp и ffmpeg берутся из PATH или из папки рядом с exe
@@ -40,30 +42,124 @@ fn s(v: &serde_json::Value) -> String {
     v.as_str().map(str::to_string).unwrap_or_else(|| v.to_string().trim_matches('"').to_string())
 }
 
+fn enc(s: &str) -> String {
+    s.bytes()
+        .map(|b| if b.is_ascii_alphanumeric() || b"-_.~".contains(&b) { (b as char).to_string() } else { format!("%{:02X}", b) })
+        .collect()
+}
+
+fn ytdlp_search(target: String, n: u32, src: &str) -> Result<Vec<Track>, String> {
+    let out = ytdlp()
+        .args(["--flat-playlist", "--dump-json", "--no-warnings", "--playlist-end"])
+        .arg(n.to_string())
+        .arg(&target)
+        .output()
+        .map_err(|e| format!("yt-dlp не найден: {e}"))?;
+    let text = String::from_utf8_lossy(&out.stdout);
+    let tracks: Vec<Track> = text
+        .lines()
+        .filter_map(|l| serde_json::from_str::<serde_json::Value>(l).ok())
+        .map(|v| {
+            let id = s(&v["id"]);
+            let url = v["url"].as_str().or(v["webpage_url"].as_str()).map(String::from)
+                .unwrap_or_else(|| format!("https://www.youtube.com/watch?v={id}"));
+            let artist = v["artist"].as_str().or(v["uploader"].as_str()).or(v["channel"].as_str())
+                .unwrap_or("").trim_end_matches(" - Topic").to_string();
+            let cover = v["thumbnails"].as_array().and_then(|a| a.last()).and_then(|t| t["url"].as_str())
+                .or(v["thumbnail"].as_str()).map(String::from)
+                .or_else(|| (src != "sc").then(|| format!("https://i.ytimg.com/vi/{id}/hqdefault.jpg")));
+            Track { id: format!("{src}_{id}"), title: s(&v["title"]), artist, duration: v["duration"].as_f64().unwrap_or(0.0),
+                url, cover, file: None, local_cover: None, source: src.to_string() }
+        })
+        .collect();
+    if tracks.is_empty() {
+        return Err(String::from_utf8_lossy(&out.stderr).lines().last().unwrap_or("ничего не найдено").to_string());
+    }
+    Ok(tracks)
+}
+
+// Каталог Spotify (клиентские ключи). Само аудио берётся с YouTube Music.
+fn spotify(q: &str, n: u32, id: &str, secret: &str) -> Result<Vec<Track>, String> {
+    use base64::Engine;
+    if id.is_empty() || secret.is_empty() {
+        return Err("нет ключей Spotify".into());
+    }
+    let basic = base64::engine::general_purpose::STANDARD.encode(format!("{id}:{secret}"));
+    let tok: serde_json::Value = ureq::post("https://accounts.spotify.com/api/token")
+        .set("Authorization", &format!("Basic {basic}"))
+        .send_form(&[("grant_type", "client_credentials")])
+        .map_err(|e| format!("Spotify: {e}"))?
+        .into_json()
+        .map_err(|e| e.to_string())?;
+    let t = tok["access_token"].as_str().ok_or("Spotify: токен не получен")?;
+    let r: serde_json::Value = ureq::get("https://api.spotify.com/v1/search")
+        .set("Authorization", &format!("Bearer {t}"))
+        .query("q", q)
+        .query("type", "track")
+        .query("limit", &n.min(10).to_string()) // с февраля 2026 максимум 10
+        .call()
+        .map_err(|e| format!("Spotify: {e}"))?
+        .into_json()
+        .map_err(|e| e.to_string())?;
+    let items = r["tracks"]["items"].as_array().cloned().unwrap_or_default();
+    Ok(items.iter().map(|it| {
+        let artist = it["artists"].as_array()
+            .map(|a| a.iter().filter_map(|x| x["name"].as_str()).collect::<Vec<_>>().join(", "))
+            .unwrap_or_default();
+        let title = s(&it["name"]);
+        Track {
+            id: format!("sp_{}", s(&it["id"])),
+            url: format!("https://music.youtube.com/search?q={}", enc(&format!("{artist} {title}"))),
+            title, artist,
+            duration: it["duration_ms"].as_f64().unwrap_or(0.0) / 1000.0,
+            cover: it["album"]["images"][0]["url"].as_str().map(String::from),
+            file: None, local_cover: None, source: "sp".into(),
+        }
+    }).collect())
+}
+
+fn one(src: &str, q: &str, n: u32, id: &str, secret: &str) -> Result<Vec<Track>, String> {
+    match src {
+        "sp" => spotify(q, n, id, secret),
+        "sc" => ytdlp_search(format!("scsearch{n}:{q}"), n, "sc"),
+        "yt" => ytdlp_search(format!("ytsearch{n}:{q}"), n, "yt"),
+        "ytm" => ytdlp_search(format!("https://music.youtube.com/search?q={}", enc(q)), n, "ytm"),
+        _ => Err("неизвестный источник".into()),
+    }
+}
+
 #[tauri::command]
-async fn search(query: String, count: u32) -> Result<Vec<Track>, String> {
+async fn search(query: String, count: u32, source: String, sp_id: String, sp_secret: String, enabled: Vec<String>) -> Result<Vec<Track>, String> {
     tauri::async_runtime::spawn_blocking(move || {
-        let out = ytdlp()
-            .args(["--flat-playlist", "--dump-json", "--no-warnings"])
-            .arg(format!("scsearch{count}:{query}"))
-            .output()
-            .map_err(|e| format!("yt-dlp не найден: {e}"))?;
-        let text = String::from_utf8_lossy(&out.stdout);
-        let tracks = text
-            .lines()
-            .filter_map(|l| serde_json::from_str::<serde_json::Value>(l).ok())
-            .map(|v| Track {
-                id: s(&v["id"]),
-                title: s(&v["title"]),
-                artist: v["uploader"].as_str().unwrap_or("").to_string(),
-                duration: v["duration"].as_f64().unwrap_or(0.0),
-                url: v["url"].as_str().or(v["webpage_url"].as_str()).unwrap_or("").to_string(),
-                cover: v["thumbnails"][0]["url"].as_str().or(v["thumbnail"].as_str()).map(String::from),
-                file: None,
-                local_cover: None,
-            })
-            .collect();
-        Ok(tracks)
+        let srcs: Vec<String> = if source == "all" { enabled } else { vec![source] };
+        if srcs.is_empty() {
+            return Err("Включите хотя бы один источник в настройках".to_string());
+        }
+        let n = if srcs.len() > 1 { (count / srcs.len() as u32).max(6) } else { count };
+        let hs: Vec<_> = srcs.into_iter().map(|src| {
+            let (q, i, k) = (query.clone(), sp_id.clone(), sp_secret.clone());
+            std::thread::spawn(move || one(&src, &q, n, &i, &k))
+        }).collect();
+        let (mut lists, mut err) = (vec![], None);
+        for h in hs {
+            match h.join().unwrap_or_else(|_| Err("поток поиска упал".to_string())) {
+                Ok(v) => lists.push(v),
+                Err(e) => err = Some(e),
+            }
+        }
+        if lists.is_empty() {
+            return Err(err.unwrap_or_default());
+        }
+        let (mut out, mut i) = (vec![], 0);
+        loop {
+            let mut any = false;
+            for l in &lists {
+                if let Some(t) = l.get(i) { out.push(t.clone()); any = true; }
+            }
+            if !any { break; }
+            i += 1;
+        }
+        Ok(out)
     })
     .await
     .map_err(|e| e.to_string())?
@@ -75,7 +171,7 @@ async fn download(app: AppHandle, mut track: Track) -> Result<Track, String> {
     tauri::async_runtime::spawn_blocking(move || {
         let tpl = dir.join(format!("{}.%(ext)s", track.id));
         let out = ytdlp()
-            .args(["-x", "--audio-format", "mp3", "--no-playlist", "--no-warnings"])
+            .args(["-x", "--audio-format", "mp3", "--playlist-items", "1", "--no-warnings"])
             .args(["--write-thumbnail", "--convert-thumbnails", "jpg", "-o"])
             .arg(&tpl)
             .arg(&track.url)
