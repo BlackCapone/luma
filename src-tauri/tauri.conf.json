@@ -1,0 +1,53 @@
+{
+  "productName": "Luma",
+  "version": "0.1.0",
+  "identifier": "com.luma.player",
+  "build": {
+    "frontendDist": "../src"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "Luma",
+        "width": 1200,
+        "height": 780,
+        "minWidth": 860,
+        "minHeight": 560
+      },
+      {
+        "label": "overlay",
+        "url": "overlay.html",
+        "title": "Luma overlay",
+        "width": 560,
+        "height": 260,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "visible": false,
+        "resizable": false,
+        "shadow": false
+      }
+    ],
+    "security": {
+      "csp": null,
+      "assetProtocol": {
+        "enable": true,
+        "scope": [
+          "$APPDATA/**"
+        ]
+      }
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/icon.ico"
+    ]
+  }
+}

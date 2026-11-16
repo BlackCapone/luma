@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><title>Luma overlay</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:transparent;color:#fff;user-select:none;font:14px/1.3 "Segoe UI Variable Text","Segoe UI",system-ui,sans-serif}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+body.place{background:rgba(6,5,10,.62)}
+#pos{position:absolute;left:0;top:0;width:560px;height:260px}
+body.place #pos{cursor:grab;outline:2px dashed rgba(255,255,255,.55);outline-offset:8px;border-radius:36px}
+body.place #pos *{pointer-events:none}
+#w{position:relative;width:560px;height:260px;padding:22px;display:flex;gap:22px;border-radius:36px;overflow:hidden;background:#2b2730;border:1px solid rgba(255,255,255,.2);transform-origin:0 0}
+#w::before{content:"";position:absolute;inset:-40px;background:var(--bg) center/cover;filter:blur(36px) brightness(.55) saturate(1.3)}
+#w>*{position:relative}
+#cv{width:214px;height:214px;border-radius:18px;object-fit:cover;background:rgba(255,255,255,.1);flex:none}
+.nc #cv{display:none}
+.r{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-between}
+.r b,.r i{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.r b{font-size:17px;font-weight:600}
+.r i{font-style:normal;font-size:15px;color:rgba(255,255,255,.55)}
+.nt .tm,.nv .vl{display:none}
+.tm .ts{display:flex;justify-content:space-between;font-size:12px;color:rgba(255,255,255,.55);margin-top:5px;font-variant-numeric:tabular-nums}
+input[type=range]{-webkit-appearance:none;appearance:none;display:block;width:100%;height:8px;border-radius:8px;cursor:pointer;background:linear-gradient(90deg,#fff var(--p,0%),rgba(255,255,255,.26) 0)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:0;height:0}
+.bt{display:flex;justify-content:center;align-items:center;gap:34px}
+.bt svg{width:34px;height:34px;fill:#fff;display:block}
+.bt button:active{opacity:.6}
+.vl{display:flex;align-items:center;gap:10px;color:rgba(255,255,255,.5)}
+.pill{display:flex;align-items:center;gap:7px;align-self:center;padding:4px 16px;border-radius:99px;background:rgba(255,255,255,.16);font-size:13px}
+#hint{display:none;position:fixed;top:32px;left:0;right:0;text-align:center}
+body.place #hint{display:block}
+#hint p{margin-bottom:12px;font-size:16px}
+#hint button{padding:9px 24px;border-radius:99px;background:#fff;color:#111;font-weight:600}
+[hidden]{display:none!important}
+#grid{position:absolute;display:none;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.1) 1px,transparent 1px)}
+body.place #grid{display:block}
+#icons i{position:absolute;border:1.5px dashed #ff6b6b;background:rgba(255,80,80,.2);border-radius:8px;pointer-events:none}
+body.place #pos.bad{outline-color:#ff5a5f}
+</style></head>
+<body>
+<div id="grid" hidden></div><div id="icons"></div>
+<div id="pos"><div id="w">
+  <img id="cv" alt="">
+  <div class="r">
+    <div><b id="t"></b><i id="a"></i></div>
+    <div class="tm"><input id="sk" class="bar" type="range" min="0" max="1000" value="0"><div class="ts"><span id="c">0:00</span><span id="d">−0:00</span></div></div>
+    <div class="bt">
+      <button id="pv" aria-label="Назад"><svg viewBox="0 0 24 24"><path d="M11 6v12L2 12zM22 6v12l-9-6z"/></svg></button>
+      <button id="pp" aria-label="Пауза"></button>
+      <button id="nx" aria-label="Вперёд"><svg viewBox="0 0 24 24"><path d="M13 6v12l9-6zM2 6v12l9-6z"/></svg></button>
+    </div>
+    <div class="vl"><span>−</span><input id="vo" type="range" min="0" max="100" value="80"><span>+</span></div>
+    <button class="pill" id="open" aria-label="Открыть Luma"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>Luma</button>
+  </div>
+</div></div>
+<div id="hint"><p>Перетащите виджет. Красным отмечены ярлыки — на них ставить нельзя.</p><button id="done">Готово</button></div>
+<script>
+const {getCurrentWindow,PhysicalPosition,PhysicalSize,currentMonitor}=window.__TAURI__.window;
+const {emit,listen}=window.__TAURI__.event;
+const $=s=>document.querySelector(s),w=getCurrentWindow(),pos=$('#pos'),box=$('#w');
+const W=560,H=260,PLAY='<svg viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></svg>',PAUSE='<svg viewBox="0 0 24 24"><path d="M5 4h5v16H5zM14 4h5v16h-5z"/></svg>';
+const fmt=s=>{s=Math.max(0,s|0);return(s/60|0)+':'+String(s%60).padStart(2,'0')};
+let st=null,placing=false,seeking=false,lastKey='',lastCover=null;
+
+function paint(){
+  const s=st.s,k=s.ovScale/100;
+  $('#t').textContent=st.title;$('#a').textContent=st.artist;
+  if(st.cover!==lastCover){lastCover=st.cover;st.cover?$('#cv').src=st.cover:$('#cv').removeAttribute('src');pos.style.setProperty('--bg',st.cover?`url("${st.cover}")`:'none')}
+  const p=st.d?st.t/st.d*100:0;
+  if(!seeking)$('#sk').value=p*10;
+  $('#sk').style.setProperty('--p',p+'%');
+  $('#c').textContent=fmt(st.t);$('#d').textContent='−'+fmt(st.d-st.t);
+  $('#pp').innerHTML=st.paused?PLAY:PAUSE;
+  $('#vo').value=st.vol*100;$('#vo').style.setProperty('--p',st.vol*100+'%');
+  const b=document.body.classList;b.toggle('nc',!s.ovCover);b.toggle('nt',!s.ovTime);b.toggle('nv',!s.ovVol);
+  box.style.zoom=k;pos.style.width=W*k+'px';pos.style.height=H*k+'px';pos.style.opacity=s.ovOpacity/100;
+}
+async function geom(){
+  const m=await currentMonitor(),k=st.s.ovScale/100,d=devicePixelRatio,s=st.s;
+  return {m,k,d,x:s.ovX==null?m.position.x+(m.size.width-W*k*d)/2:s.ovX,y:s.ovY==null?m.position.y+m.size.height-(H*k+64)*d:s.ovY};
+}
+async function layout(){
+  if(placing||!st)return;
+  const s=st.s;
+  if(!s.ov||(s.ovOnlyPlay&&st.paused)){await w.hide();return}
+  const g=await geom();
+  await w.setSize(new PhysicalSize(Math.round(W*g.k*g.d),Math.round(H*g.k*g.d)));
+  await w.setPosition(new PhysicalPosition(Math.round(g.x),Math.round(g.y)));
+  const top=s.ovLevel==='top';
+  await w.setAlwaysOnTop(top);await w.setAlwaysOnBottom(!top);
+  await w.show();
+}
+let G=40,wa,ic=[],cur=[0,0],dg=null,PW=0,PH=0;
+const hit=(x,y)=>st.s.ovAvoid&&ic.some(r=>x<r[2]+6&&x+PW>r[0]-6&&y<r[3]+6&&y+PH>r[1]-6);
+function snap(x,y){
+  if(st.s.ovGrid){x=wa.x+Math.round((x-wa.x)/G)*G;y=wa.y+Math.round((y-wa.y)/G)*G}
+  return [Math.max(wa.x,Math.min(wa.x+wa.w-PW,x)),Math.max(wa.y,Math.min(wa.y+wa.h-PH,y))];
+}
+function nearest(x,y){
+  let best=null,bd=1e12;const step=st.s.ovGrid?G:20;
+  for(let yy=wa.y;yy<=wa.y+wa.h-PH;yy+=step)for(let xx=wa.x;xx<=wa.x+wa.w-PW;xx+=step){
+    if(hit(xx,yy))continue;
+    const d=(xx-x)**2+(yy-y)**2;if(d<bd){bd=d;best=[xx,yy]}
+  }
+  return best||[x,y];
+}
+function put(x,y){cur=[x,y];pos.style.left=x+'px';pos.style.top=y+'px';pos.classList.toggle('bad',!!hit(x,y))}
+async function place(){
+  if(!st)return;
+  placing=true;
+  const g=await geom(),d=g.d,m=g.m,a=m.workArea||{position:m.position,size:m.size};
+  wa={x:(a.position.x-m.position.x)/d,y:(a.position.y-m.position.y)/d,w:a.size.width/d,h:a.size.height/d};
+  PW=W*g.k;PH=H*g.k;
+  await w.setAlwaysOnBottom(false);await w.setAlwaysOnTop(true);
+  await w.setPosition(m.position);await w.setSize(m.size);
+  await w.show();await w.setFocus();
+  let raw=[];
+  if(st.s.ovAvoid){try{raw=await window.__TAURI__.core.invoke('desktop_icons')}catch{}}
+  ic=raw.map(r=>[(r[0]-m.position.x)/d,(r[1]-m.position.y)/d,(r[2]-m.position.x)/d,(r[3]-m.position.y)/d]);
+  $('#grid').style.cssText=`left:${wa.x}px;top:${wa.y}px;width:${wa.w}px;height:${wa.h}px;background-size:${G}px ${G}px`;
+  $('#grid').hidden=!st.s.ovGrid;
+  $('#icons').innerHTML=ic.map(r=>`<i style="left:${r[0]}px;top:${r[1]}px;width:${r[2]-r[0]}px;height:${r[3]-r[1]}px"></i>`).join('');
+  document.body.classList.add('place');
+  const p=snap((g.x-m.position.x)/d,(g.y-m.position.y)/d),q=hit(p[0],p[1])?nearest(p[0],p[1]):p;
+  put(q[0],q[1]);
+}
+async function done(){
+  if(!placing||hit(cur[0],cur[1]))return;
+  const m=await currentMonitor(),d=devicePixelRatio;
+  const x=Math.round(m.position.x+cur[0]*d),y=Math.round(m.position.y+cur[1]*d);
+  placing=false;document.body.classList.remove('place');pos.style.left=pos.style.top='0px';
+  $('#icons').innerHTML='';
+  st.s.ovX=x;st.s.ovY=y;lastKey='';
+  emit('ovcmd',{c:'placed',x,y});layout();
+}
+listen('ov',e=>{
+  st=e.payload;paint();
+  const k=JSON.stringify(st.s)+(st.s.ovOnlyPlay?st.paused:'');
+  if(k!==lastKey){lastKey=k;layout()}
+});
+listen('ov-place',place);
+pos.onpointerdown=e=>{if(!placing)return;dg=[e.clientX-cur[0],e.clientY-cur[1]];pos.setPointerCapture(e.pointerId)};
+pos.onpointermove=e=>{if(!dg)return;const p=snap(e.clientX-dg[0],e.clientY-dg[1]);put(p[0],p[1])};
+pos.onpointerup=()=>{if(!dg)return;dg=null;if(hit(cur[0],cur[1])){const q=nearest(cur[0],cur[1]);put(q[0],q[1])}};
+addEventListener('focus',()=>{if(st&&!placing&&st.s.ovLevel!=='top')w.setAlwaysOnBottom(true)});
+$('#done').onclick=done;
+addEventListener('keydown',e=>{if(e.key==='Escape'||e.key==='Enter')done()});
+
+/* кнопки */
+const cmd=(c,v)=>emit('ovcmd',{c,v});
+$('#pp').onclick=()=>cmd('pp');$('#pv').onclick=()=>cmd('prev');$('#nx').onclick=()=>cmd('next');$('#open').onclick=()=>cmd('open');
+$('#sk').oninput=e=>{seeking=true;e.target.style.setProperty('--p',e.target.value/10+'%');cmd('seek',e.target.value/1000)};
+$('#sk').onchange=()=>seeking=false;
+$('#vo').oninput=e=>{e.target.style.setProperty('--p',e.target.value+'%');cmd('vol',e.target.value/100)};
+emit('ov-ready');
+</script></body></html>
