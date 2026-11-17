@@ -47,7 +47,7 @@ body.no-glow main::before{display:none}
 h1{font-size:30px;letter-spacing:-.03em;margin:8px 0 14px}
 #empty,.hint{color:var(--mute)}.hint{font-size:13px;margin-bottom:6px}
 .it{position:relative;cursor:pointer;min-width:0}
-#grid.list .it{display:grid;grid-template-columns:48px minmax(0,1fr) 96px 84px 46px;align-items:center;gap:16px;padding:7px 12px;border-radius:8px}
+#grid.list .it{display:grid;grid-template-columns:48px minmax(0,1fr) 96px 84px 46px 36px;align-items:center;gap:16px;padding:7px 12px;border-radius:8px}
 #grid.list .it:hover{background:var(--hov)}#grid.list .cv{width:48px;height:48px;border-radius:6px}
 #grid.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(176px,1fr));gap:12px}
 #grid.tiles .it{padding:12px;border-radius:10px;background:rgba(255,255,255,.04)}#grid.tiles .it:hover{background:var(--hov)}
@@ -75,7 +75,7 @@ footer{grid-column:1/3;display:grid;grid-template-columns:minmax(200px,30%) 1fr 
 .ic{position:relative;width:32px;height:32px;display:grid;place-items:center;color:var(--mute)}
 .ic:hover{color:var(--text)}.ic.on{color:var(--accent)}.ic svg{width:18px;height:18px}
 .ic.fill svg{fill:currentColor;stroke:none}
-#rep.one::after{content:"1";position:absolute;right:4px;top:3px;font-size:9px;font-weight:700}
+.one::after{content:"1";position:absolute;inset:0;display:grid;place-items:center;font-size:9px;font-weight:800}
 #pp{width:34px;height:34px;border-radius:50%;background:#fff;color:#000;display:grid;place-items:center}
 #pp:hover{transform:scale(1.06)}#pp svg{width:18px;height:18px;fill:currentColor}
 .time{display:flex;align-items:center;gap:10px;width:100%;max-width:620px;font-size:12px;color:var(--mute);font-variant-numeric:tabular-nums}
@@ -112,6 +112,17 @@ select,.tx{background:rgba(255,255,255,.1);color:var(--text);border:1px solid va
 #fs .btns{display:flex;align-items:center;gap:32px}#fs .btns svg{width:32px;height:32px;fill:currentColor}
 #fs .btns button:hover{color:var(--accent)}
 #fs-pp{width:72px;height:72px;border-radius:50%;background:#fff;color:#111;display:grid;place-items:center}#fs-pp:hover{color:#111!important;filter:brightness(.92)}
+.del{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;color:var(--mute);opacity:0;transition:opacity .15s,background .15s}
+.del svg{width:17px;height:17px}
+.it:hover .del,.mi:hover .del,.del.ask{opacity:1}
+.del:hover{color:#fff;background:rgba(255,255,255,.12)}.del.ask{background:#e5484d;color:#fff}
+#grid.tiles .del{position:absolute;top:18px;right:18px;background:rgba(0,0,0,.6)}
+.mi .del{margin-left:auto;flex:none}
+#fs .btns{gap:24px}
+#fs .btns .fsm{position:relative;width:44px;height:44px;display:grid;place-items:center;color:rgba(255,255,255,.55)}
+#fs .btns .fsm.on{color:var(--accent)}
+#fs .btns svg.s{width:24px;height:24px;fill:none;stroke:currentColor}
+#fs-rep.one::after{font-size:11px}
 </style>
 </head>
 <body>
@@ -160,9 +171,11 @@ select,.tx{background:rgba(255,255,255,.1);color:var(--text);border:1px solid va
   <div class="fs-t"><b id="fs-t"></b><i id="fs-a"></i></div>
   <div class="fs-w"><canvas id="fwave"></canvas><div class="fs-time"><span id="fs-c">0:00</span><span id="fs-d">0:00</span></div></div>
   <div class="btns">
+    <button class="fsm" id="fs-shuf" aria-label="Перемешать"><svg class="s" viewBox="0 0 24 24"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg></button>
     <button id="fs-prev" aria-label="Назад"><svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg></button>
     <button id="fs-pp" aria-label="Играть"></button>
     <button id="fs-next" aria-label="Вперёд"><svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg></button>
+    <button class="fsm" id="fs-rep" aria-label="Повтор"><svg class="s" viewBox="0 0 24 24"><path d="M17 1l4 4-4 4M3 11V9a4 4 0 014-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 01-4 4H3"/></svg></button>
   </div>
 </section>
 <div id="toast"></div>
@@ -191,13 +204,15 @@ const img=t=>cover(t)?`<img src="${esc(cover(t))}" loading="lazy" onerror="this.
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),3800)}
 
 /* ---------- отрисовка ---------- */
+const TRASH='<svg class="s" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>';
+const delBtn=t=>isLocal(t)?`<button class="del${ask===t.id?' ask':''}" data-id="${t.id}" title="Удалить из библиотеки">${TRASH}</button>`:'<span></span>';
 function row(t,i){
   const b=busy.has(t.id);
-  return `<div class="it${b?' busy':''}${now&&now.id===t.id?' on':''}" data-i="${i}"><div class="cv" style="--h:${hue(t.id)}">${img(t)}<span class="pl">${PLAY}</span></div><div class="mt"><b>${esc(t.title)}</b><i>${esc(t.artist)}</i></div><span class="src">${SRC[t.source]||''}</span><span class="st">${isLocal(t)?'Скачан':b?'Скачиваю…':''}</span><span class="du">${t.duration?fmt(t.duration):''}</span></div>`;
+  return `<div class="it${b?' busy':''}${now&&now.id===t.id?' on':''}" data-i="${i}"><div class="cv" style="--h:${hue(t.id)}">${img(t)}<span class="pl">${PLAY}</span></div><div class="mt"><b>${esc(t.title)}</b><i>${esc(t.artist)}</i></div><span class="src">${SRC[t.source]||''}</span><span class="st">${isLocal(t)?'Скачан':b?'Скачиваю…':''}</span><span class="du">${t.duration?fmt(t.duration):''}</span>${delBtn(t)}</div>`;
 }
 function renderMini(){
   $('#libn').textContent=lib.length||'';
-  $('#mini').innerHTML=lib.length?lib.map((t,i)=>`<div class="mi${now&&now.id===t.id?' on':''}" data-i="${i}"><div class="cv" style="--h:${hue(t.id)}">${img(t)}</div><div class="mt"><b>${esc(t.title)}</b><i>${esc(t.artist)}</i></div></div>`).join(''):'<p class="hint" style="padding:6px 10px">Здесь появятся скачанные треки.</p>';
+  $('#mini').innerHTML=lib.length?lib.map((t,i)=>`<div class="mi${now&&now.id===t.id?' on':''}" data-i="${i}"><div class="cv" style="--h:${hue(t.id)}">${img(t)}</div><div class="mt"><b>${esc(t.title)}</b><i>${esc(t.artist)}</i></div>${delBtn(t)}</div>`).join(''):'<p class="hint" style="padding:6px 10px">Здесь появятся скачанные треки.</p>';
 }
 function render(){
   const st=view==='set';
@@ -258,8 +273,8 @@ async function doSearch(q){
 }
 $('#q').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.value.trim()){view='search';setNav();doSearch(e.target.value.trim())}});
 $('#chips').onclick=e=>{const c=e.target.closest('.chip');if(!c)return;src=c.dataset.s;render();const q=$('#q').value.trim();if(q)doSearch(q)};
-$('#grid').onclick=e=>{const c=e.target.closest('.it');if(c)play(list()[c.dataset.i],list())};
-$('#mini').onclick=e=>{const c=e.target.closest('.mi');if(c)play(lib[c.dataset.i],lib)};
+$('#grid').onclick=e=>{const d=e.target.closest('.del');if(d)return askDel(d.dataset.id);const c=e.target.closest('.it');if(c)play(list()[c.dataset.i],list())};
+$('#mini').onclick=e=>{const d=e.target.closest('.del');if(d)return askDel(d.dataset.id);const c=e.target.closest('.mi');if(c)play(lib[c.dataset.i],lib)};
 function setNav(){document.querySelectorAll('.nav').forEach(n=>n.classList.toggle('on',n.dataset.v===view));render()}
 document.querySelectorAll('.nav').forEach(n=>n.onclick=()=>{view=n.dataset.v;setNav()});
 
@@ -268,8 +283,8 @@ const setP=(el,p)=>el.style.setProperty('--p',p+'%');
 $('#pp').innerHTML=PLAY;
 $('#pp').onclick=()=>{if(audio.src)audio.paused?audio.play():audio.pause()};
 $('#prev').onclick=()=>step(-1);$('#next').onclick=()=>step(1);
-$('#shuf').onclick=e=>{shuf=!shuf;e.currentTarget.classList.toggle('on',shuf)};
-$('#rep').onclick=e=>{rep=(rep+1)%3;e.currentTarget.classList.toggle('on',rep>0);e.currentTarget.classList.toggle('one',rep===2)};
+$('#shuf').onclick=$('#fs-shuf').onclick=()=>{shuf=!shuf;syncModes()};
+$('#rep').onclick=$('#fs-rep').onclick=()=>{rep=(rep+1)%3;syncModes()};
 audio.onplay=()=>$('#pp').innerHTML=PAUSE;
 audio.onpause=()=>$('#pp').innerHTML=PLAY;
 audio.onended=()=>{if(rep===2){audio.currentTime=0;audio.play()}else step(1)};
@@ -298,11 +313,12 @@ const GROUPS=[
 function renderSet(){
   $('#settings').innerHTML='<h1>Настройки</h1>'+GROUPS.map(([g,it,note])=>`<h2>${g}</h2>${note?`<p class="hint">${note}</p>`:''}`+it.map(([k,l,o,ty])=>
     `<label class="row"><span>${l}</span>${o?`<select data-k="${k}">${o.map(([v,n])=>`<option value="${v}"${S[k]==v?' selected':''}>${n}</option>`).join('')}</select>`:ty?`<input class="tx" type="${ty}" data-k="${k}" value="${esc(S[k])}" placeholder="не задано">`:`<input type="checkbox" data-k="${k}"${S[k]?' checked':''}>`}</label>`).join('')).join('')
-    +'<div class="row" style="cursor:default"><span>Положение виджета</span><span><button class="btn" id="place">Выбрать место</button> <button class="btn" id="reset">Сбросить</button></span></div>';
+    +'<div class="row" style="cursor:default"><span>Положение виджета</span><span><button class="btn" id="place">Выбрать место</button> <button class="btn" id="reset">Сбросить</button></span></div><h2>Библиотека</h2><div class="row" style="cursor:default"><span>Скачано треков: '+lib.length+'</span><button class="btn" id="clr">Очистить библиотеку</button></div>';
 }
 $('#settings').onchange=e=>{const k=e.target.dataset.k;if(!k)return;
   S[k]=e.target.type==='checkbox'?e.target.checked:typeof DEF[k]==='number'?+e.target.value:e.target.value.trim();save();apply()};
 $('#settings').onclick=e=>{
+  if(e.target.id==='clr')return clearLib(e.target);
   if(e.target.id==='place')placeOverlay();
   if(e.target.id==='reset'){S.ovX=S.ovY=null;save();pushOverlay();toast('Виджет вернётся вниз по центру')}};
 function apply(){
@@ -405,8 +421,40 @@ audio.addEventListener('play',()=>$('#fs-pp').innerHTML=PAUSE);
 audio.addEventListener('pause',()=>$('#fs-pp').innerHTML=PLAY);
 addEventListener('keydown',e=>{if(e.key==='Escape')closeFs()});
 
+/* ---------- удаление и режимы повтора ---------- */
+let ask=null,askT,clrAsk=false;
+function stopPlayback(){
+  audio.pause();audio.removeAttribute('src');audio.load();now=null;queue=[];qi=-1;wp=null;
+  $('#np-t').textContent='Ничего не играет';$('#np-a').textContent='Выберите трек';$('#np-img').removeAttribute('src');
+  $('#seek').value=0;setP($('#seek'),0);
+  ['#cur','#dur','#fs-c','#fs-d'].forEach(s=>$(s).textContent='0:00');
+  closeFs();drawWave();pushOverlay();
+}
+function askDel(id){
+  if(ask===id){clearTimeout(askT);ask=null;return del(id)}
+  ask=id;render();toast('Нажмите корзину ещё раз, чтобы удалить трек');
+  clearTimeout(askT);askT=setTimeout(()=>{ask=null;render()},3000);
+}
+async function del(id){
+  if(now&&now.id===id)stopPlayback();
+  try{await invoke('delete_track',{id})}catch(e){return toast('Не удалось удалить: '+e)}
+  lib=lib.filter(t=>t.id!==id);peaks.delete(id);
+  queue=queue.filter(t=>t.id!==id);qi=now?queue.findIndex(t=>t.id===now.id):-1;
+  toast('Трек удалён');render();
+}
+async function clearLib(b){
+  if(!clrAsk){clrAsk=true;b.textContent='Нажмите ещё раз для удаления';setTimeout(()=>{clrAsk=false;if(view==='set')renderSet()},3500);return}
+  clrAsk=false;stopPlayback();
+  try{await invoke('clear_library')}catch(e){return toast(String(e))}
+  lib=[];peaks.clear();toast('Библиотека очищена');render();
+}
+function syncModes(){
+  ['#shuf','#fs-shuf'].forEach(s=>{$(s).classList.toggle('on',shuf);$(s).title=shuf?'Перемешивание включено':'Перемешать'});
+  ['#rep','#fs-rep'].forEach(s=>{const e=$(s);e.classList.toggle('on',rep>0);e.classList.toggle('one',rep===2);e.title=['Повтор выключен','Повторять все треки','Повторять этот трек'][rep]});
+}
+
 invoke('library').then(l=>{lib=l;render()}).catch(()=>render());
-apply();
+apply();syncModes();
 </script>
 </body>
 </html>

@@ -210,6 +210,56 @@ fn library(app: AppHandle) -> Result<Vec<Track>, String> {
     Ok(items.into_iter().map(|x| x.1).collect())
 }
 
+fn safe_id(id: &str) -> bool {
+    !id.is_empty() && id.chars().all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
+}
+
+// файл может быть ещё занят плеером, поэтому несколько попыток
+fn rm(p: &std::path::Path) -> Result<(), String> {
+    for i in 0..6 {
+        match fs::remove_file(p) {
+            Ok(_) => return Ok(()),
+            Err(e) if i == 5 => return Err(e.to_string()),
+            Err(_) => std::thread::sleep(std::time::Duration::from_millis(200)),
+        }
+    }
+    Ok(())
+}
+
+#[tauri::command]
+async fn delete_track(app: AppHandle, id: String) -> Result<(), String> {
+    if !safe_id(&id) {
+        return Err("некорректный id".into());
+    }
+    let dir = tracks_dir(&app)?;
+    tauri::async_runtime::spawn_blocking(move || {
+        let prefix = format!("{id}.");
+        for e in fs::read_dir(dir).map_err(|e| e.to_string())?.flatten() {
+            if e.file_name().to_string_lossy().starts_with(&prefix) {
+                rm(&e.path())?;
+            }
+        }
+        Ok(())
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+async fn clear_library(app: AppHandle) -> Result<(), String> {
+    let dir = tracks_dir(&app)?;
+    tauri::async_runtime::spawn_blocking(move || {
+        for e in fs::read_dir(dir).map_err(|e| e.to_string())?.flatten() {
+            if e.path().is_file() {
+                rm(&e.path())?;
+            }
+        }
+        Ok(())
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
 #[cfg(windows)]
 mod win {
     use std::ffi::c_void;
@@ -298,7 +348,7 @@ fn main() {
                 }
             }
         })
-        .invoke_handler(tauri::generate_handler![search, download, library, desktop_icons])
+        .invoke_handler(tauri::generate_handler![search, download, library, desktop_icons, delete_track, clear_library])
         .run(tauri::generate_context!())
         .expect("ошибка запуска приложения");
 }
